@@ -1,0 +1,1238 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8" />
+<title>星启 - AI 点亮个性化学习路径</title>
+
+<style>
+/* ===============================
+   基础样式（保持原风格）
+================================ */
+*{
+  margin:0;
+  padding:0;
+  box-sizing:border-box;
+}
+
+:root {
+  --primary: #6e8fff;
+  --secondary: #9aa3ff;
+  --accent: #6ee7ff;
+  --bg-dark: #0a0a0a;
+  --bg-darker: #000000;
+  --bg-panel: #121212;
+  --text-primary: #ffffff;
+  --text-secondary: #e6ebff;
+  --text-tertiary: #a0a0a0;
+  --border-main: rgba(255, 255, 255, 0.1);
+  --border-light: rgba(255, 255, 255, 0.05);
+  --shadow: 0 4px 20px rgba(0, 0, 0, 0.5);
+}
+
+body{
+  font-family:-apple-system,BlinkMacSystemFont,"Segoe UI","PingFang SC","Microsoft YaHei",Arial,sans-serif;
+  background:#0e0f13;
+  color:#e6ebff;
+  overflow-x:hidden;
+}
+
+/* ===== 无障碍访问辅助类 ===== */
+.sr-only {
+  position: absolute;
+  width: 1px;
+  height: 1px;
+  padding: 0;
+  margin: -1px;
+  overflow: hidden;
+  clip: rect(0, 0, 0, 0);
+  white-space: nowrap;
+  border: 0;
+}
+
+/* ===== 顶部导航 ===== */
+.site-header{
+  position:fixed;
+  top:0;
+  left:0;
+  right:0;
+  height:64px;
+  display:flex;
+  align-items:center;
+  justify-content:space-between;
+  padding:0 24px;
+  background:rgba(14,15,19,.6);
+  backdrop-filter:blur(20px);
+  z-index:1000;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+.logo{
+  font-size:20px;
+  font-weight:600;
+  color:#ffffff;
+  letter-spacing: 0.5px;
+}
+
+.menu-btn{
+  font-size:26px;
+  background:none;
+  border:none;
+  color:#ffffff;
+  cursor:pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+  z-index: 9999;
+  pointer-events: auto;
+}
+
+.menu-btn:hover,
+.menu-btn:focus {
+  background-color: rgba(255,255,255,0.1);
+  outline: 2px solid rgba(255,255,255,0.3);
+}
+
+/* ===== 抽屉 ===== */
+.drawer-mask{
+  position:fixed;
+  inset:0;
+  background:rgba(0,0,0,.5);
+  display:none;
+  z-index:999;
+  opacity: 0;
+  transition: opacity 0.3s ease;
+}
+
+.drawer-mask.show{
+  display:block;
+  opacity: 1;
+}
+
+.drawer{
+  position:fixed;
+  top:0;
+  right:-320px;
+  width:320px;
+  height:100vh;
+  background: rgba(17, 19, 26, 0.95);
+  backdrop-filter: blur(20px);
+  padding:24px;
+  transition: right 0.4s cubic-bezier(0.19, 1, 0.22, 1);
+  z-index:1000;
+  box-shadow: -5px 0 25px rgba(0,0,0,0.3);
+  overflow-y: auto;
+  overscroll-behavior: contain;
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer.open{
+  right:0;
+}
+
+/* 抽屉头部包装 */
+.drawer-header-wrapper {
+  display: flex;
+  justify-content: flex-end;
+  align-items: center;
+  margin-bottom: 24px;
+  padding-bottom: 16px;
+  border-bottom: 1px solid rgba(255,255,255,0.1);
+}
+
+/* 抽屉关闭按钮 */
+.drawer-close-btn {
+  background: none;
+  border: none;
+  color: #fff;
+  font-size: 24px;
+  cursor: pointer;
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: background-color 0.3s ease;
+}
+
+.drawer-close-btn:hover,
+.drawer-close-btn:focus {
+  background-color: rgba(255,255,255,0.1);
+  outline: 2px solid rgba(255,255,255,0.3);
+}
+
+/* ===== 抽屉内容 ===== */
+.drawer-header{
+  display:flex;
+  align-items:center;
+  margin-bottom: 24px;
+}
+
+.drawer-avatar{
+  width:44px;
+  height:44px;
+  border-radius:50%;
+  background: linear-gradient(135deg, #9aa3ff, #6ee7ff);
+  margin-right:12px;
+}
+
+/* A 区：登录 → 个人信息 */
+.drawer-user {
+  display: flex;
+  flex-direction: column;
+}
+
+.drawer-user strong{
+  display:block;
+  font-size:16px;
+  margin-bottom:6px;
+  cursor:pointer;
+}
+
+.drawer-user strong:hover,
+.drawer-user strong:focus {
+  color: #9aa3ff;
+  outline: 2px solid rgba(154, 163, 255, 0.3);
+}
+
+.user-level {
+  font-size: 14px;
+  color: #9aa3ff;
+  transition: color 0.2s ease;
+}
+
+.user-level.pro {
+  color: #6ee7ff;
+}
+
+.user-level.pro-plus {
+  color: #ff6b6b;
+}
+
+.user-level:hover,
+.user-level:focus {
+  color: #6ee7ff;
+  outline: 2px solid rgba(110, 231, 255, 0.3);
+}
+
+/* 抽屉分组 */
+.drawer-section{
+  margin-top: 28px;
+}
+
+.drawer-section h4{
+  font-size:14px;
+  color:#8fa0ff;
+  margin-bottom:10px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+}
+
+.drawer-nav {
+  display: flex;
+  flex-direction: column;
+  gap: 4px;
+}
+
+.drawer-nav a{
+  display:block;
+  padding: 10px 12px;
+  font-size:15px;
+  color:#e6ebff;
+  text-decoration:none;
+  transition: all 0.2s ease;
+  border-radius: 8px;
+  margin-bottom: 4px;
+}
+
+.drawer-nav a:hover,
+.drawer-nav a:focus {
+  background: rgba(154, 163, 255, 0.1);
+  color: #9aa3ff;
+  transform: translateX(4px);
+  outline: 2px solid rgba(154, 163, 255, 0.3);
+}
+
+/* ===== 页面主体 ===== */
+.screen{
+  min-height:100vh;
+  display:flex;
+  align-items:center;
+  justify-content:center;
+  padding:120px 40px;
+  text-align:center;
+  position: relative;
+}
+
+.screen.dark {
+  background: linear-gradient(to bottom, #0c0d10, #0a0b0f);
+}
+
+.screen.darker {
+  background: linear-gradient(to bottom, #08090c, #06070a);
+}
+
+.content{
+  max-width:980px;
+  opacity:0;
+  transition:all 1.2s cubic-bezier(.19,1,.22,1);
+  transform: translateY(40px);
+}
+
+.from-bottom {
+  transform: translateY(80px);
+}
+
+.from-top {
+  transform: translateY(-80px);
+}
+
+.from-left {
+  transform: translateX(-80px);
+}
+
+.from-right {
+  transform: translateX(80px);
+}
+
+.content.show {
+  opacity:1;
+  transform:translateY(0);
+}
+
+.content.fade {
+  transition-delay: 0.3s;
+}
+
+.from-bottom.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.from-top.show {
+  transform: translateY(0);
+  opacity: 1;
+}
+
+.from-left.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.from-right.show {
+  transform: translateX(0);
+  opacity: 1;
+}
+
+.content h1{
+  font-size:4rem;
+  font-weight:700;
+  margin-bottom:20px;
+  background:linear-gradient(120deg,#9aa3ff,#6ee7ff);
+  background-clip:text;
+  -webkit-background-clip:text;
+  -webkit-text-fill-color:transparent;
+}
+
+.content h2{
+  font-size:3rem;
+  font-weight:700;
+  margin-bottom:20px;
+}
+
+.core-modules-title {
+  font-size: 3.2rem;
+  font-weight: 700;
+  margin-bottom: 20px;
+  background: linear-gradient(120deg, #9aa3ff, #6ee7ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.content p{
+  font-size:1.2rem;
+  margin-bottom:15px;
+}
+
+.highlight{
+  color:#6ee7ff;
+  font-weight:500;
+}
+
+/* ===== 卡片 ===== */
+.cards{
+  display:grid;
+  grid-template-columns:repeat(3,1fr);
+  gap:24px;
+  margin-top:40px;
+}
+
+.card{
+  background:rgba(30,32,48,.6);
+  border:1px solid rgba(255,255,255,.06);
+  border-radius:16px;
+  padding:32px;
+  transition:all .3s ease;
+}
+
+.card:hover{
+  transform:translateY(-5px);
+  border-color:rgba(154,163,255,.3);
+  box-shadow:0 10px 30px rgba(0,0,0,.2);
+}
+
+.card h3{
+  margin-bottom:12px;
+  font-size: 24px;
+}
+
+/* ===== 功能网格 (Features Grid) ===== */
+.features-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px 45px;
+  margin-top: 40px;
+}
+
+.feature-card {
+  background: rgba(30, 32, 48, 0.6);
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 16px;
+  padding: 22px 40px;
+  text-align: center;
+  transition: all 0.3s ease;
+  color: inherit;
+  cursor: default;
+}
+
+.feature-card:hover {
+  transform: translateY(-5px);
+  border-color: rgba(154, 163, 255, 0.3);
+  box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+}
+
+.feature-icon {
+  font-size: 2.5rem;
+  margin-bottom: 20px;
+}
+
+.feature-card h3 {
+  margin-bottom: 16px;
+  font-size: 24px;
+  font-weight: 600;
+  line-height: 1.3;
+}
+
+.feature-card p {
+  color: #bdc3ff;
+  font-size: 1rem;
+  line-height: 1.6;
+  font-weight: 400;
+}
+
+footer{
+  padding:60px 0;
+  text-align:center;
+  background: #0a0b0f;
+  border-top: 1px solid rgba(255,255,255,0.05);
+}
+
+footer p {
+  color: #8b8b8b;
+  font-size: 14px;
+}
+
+.metal {
+  color: #ffd700;
+  text-shadow: 0 0 10px rgba(255, 215, 0, 0.3);
+}
+
+/* ===== 登录弹窗 ===== */
+.login-modal {
+  position: fixed;
+  inset: 0;
+  background: rgba(0, 0, 0, 0.7);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  z-index: 2000;
+  opacity: 0;
+  visibility: hidden;
+  transition: all 0.3s ease;
+}
+
+.login-modal.show {
+  opacity: 1;
+  visibility: visible;
+}
+
+.login-modal-content {
+  background: var(--bg-panel);
+  border: 1px solid var(--border-main);
+  border-radius: 20px;
+  padding: 40px;
+  width: 100%;
+  max-width: 420px;
+  box-shadow: var(--shadow);
+  transform: translateY(20px);
+  transition: transform 0.3s ease;
+}
+
+.login-modal.show .login-modal-content {
+  transform: translateY(0);
+}
+
+.login-modal-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 24px;
+}
+
+.login-modal-header h2 {
+  font-size: 24px;
+  font-weight: 700;
+  margin: 0;
+  color: var(--text-primary);
+  background: linear-gradient(120deg, var(--secondary), var(--accent));
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+}
+
+.login-modal-close {
+  background: none;
+  border: none;
+  font-size: 24px;
+  color: var(--text-tertiary);
+  cursor: pointer;
+  width: 36px;
+  height: 36px;
+  border-radius: 50%;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  transition: all 0.3s ease;
+}
+
+.login-modal-close:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: var(--text-primary);
+}
+
+.login-modal-form {
+  margin-bottom: 24px;
+}
+
+.form-group {
+  margin-bottom: 20px;
+  text-align: left;
+}
+
+.form-group label {
+  display: block;
+  margin-bottom: 8px;
+  font-size: 14px;
+  color: var(--text-secondary);
+}
+
+.form-control {
+  width: 100%;
+  padding: 14px 16px;
+  background: rgba(255, 255, 255, 0.05);
+  border: 1px solid var(--border-light);
+  border-radius: 12px;
+  color: var(--text-primary);
+  font-size: 16px;
+  transition: all 0.3s ease;
+  outline: none;
+}
+
+.form-control:focus {
+  border-color: var(--primary);
+  background: rgba(110, 143, 255, 0.1);
+}
+
+.btn {
+  display: block;
+  width: 100%;
+  padding: 14px;
+  border-radius: 12px;
+  font-size: 16px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+  border: none;
+  margin-bottom: 16px;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, var(--secondary), var(--accent));
+  color: var(--bg-dark);
+}
+
+.btn-primary:hover {
+  transform: translateY(-2px);
+  box-shadow: 0 6px 16px rgba(110, 143, 255, 0.3);
+}
+
+.login-modal-footer {
+  text-align: center;
+  font-size: 14px;
+  color: var(--text-tertiary);
+}
+
+.login-modal-footer a {
+  color: var(--accent);
+  text-decoration: none;
+}
+
+.login-modal-footer a:hover {
+  text-decoration: underline;
+}
+
+/* ===== 功能按钮（需要登录的）===== */
+.requires-login {
+  cursor: pointer;
+}
+
+/* ===== 开发者入口（仅登录后显示）===== */
+.developer-entry {
+  display: none;
+  padding: 12px 16px;
+  background: rgba(110, 143, 255, 0.1);
+  border-radius: 12px;
+  margin-top: 16px;
+  text-align: center;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+.developer-entry:hover {
+  background: rgba(110, 143, 255, 0.2);
+}
+
+.developer-entry span {
+  color: var(--accent);
+  font-weight: 500;
+}
+
+/* ===== 核心模块总览 ===== */
+.core-overview {
+  display: flex;
+  flex-direction: column;
+  overflow: visible; /* 确保内容不会产生内部滚动 */
+  position: relative;
+}
+
+.module-page.full-screen {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+  opacity: 0;
+  transform: translateY(40px);
+  transition: all 1.2s cubic-bezier(.19,1,.22,1);
+}
+
+.module-page.full-screen:nth-child(odd) {
+  background: linear-gradient(to bottom, #0c0d10, #0a0b0f);
+}
+
+.module-page.full-screen:nth-child(even) {
+  background: linear-gradient(to bottom, #1a1c2f, #0c0e1b);
+}
+
+.module-page.active {
+  opacity: 1;
+  transform: translateY(0);
+}
+
+.module-page h2 {
+  font-size: 3.5rem;
+  font-weight: 800;
+  margin-bottom: 1.5rem;
+  background: linear-gradient(120deg, #9aa3ff, #6ee7ff);
+  background-clip: text;
+  -webkit-background-clip: text;
+  -webkit-text-fill-color: transparent;
+  letter-spacing: -0.5px;
+}
+
+.module-page p {
+  font-size: 1.4rem;
+  line-height: 1.8;
+  max-width: 700px;
+  margin: 0 auto;
+  color: #cbd5ff;
+  font-weight: 300;
+}
+
+
+/* 添加细微的动画效果 */
+@keyframes subtleFloat {
+  0% { transform: translateY(0); }
+  50% { transform: translateY(-10px); }
+  100% { transform: translateY(0); }
+}
+
+.module-page h2 {
+  animation: subtleFloat 6s ease-in-out infinite;
+}
+
+/* 核心模块全屏段落样式 */
+.core-overview .module-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+}
+
+.core-overview .module-page:nth-child(odd) {
+  background: linear-gradient(to bottom, #0c0d10, #0a0b0f);
+}
+
+.core-overview .module-page:nth-child(even) {
+  background: linear-gradient(to bottom, #1a1c2f, #0c0e1b);
+}
+
+/* 核心模块全屏段落样式 */
+.core-overview .module-page {
+  min-height: 100vh;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 120px 40px;
+  text-align: center;
+}
+
+.core-overview .module-page:nth-child(odd) {
+  background: linear-gradient(to bottom, #0c0d10, #0a0b0f);
+}
+
+.core-overview .module-page:nth-child(even) {
+  background: linear-gradient(to bottom, #1a1c2f, #0c0e1b);
+}
+
+/* 响应式调整 */
+@media (max-width: 768px) {
+  .module-page h2 {
+    font-size: 2.5rem;
+  }
+  
+  .module-page p {
+    font-size: 1.1rem;
+    padding: 0 10px;
+  }
+}
+
+</style>
+</head>
+<body>
+  <header class="site-header">
+    <div class="logo">星启</div>
+    <button class="menu-btn" aria-label="打开菜单">☰</button>
+  </header>
+
+  <div class="drawer-mask"></div>
+  <div class="drawer">
+    <div class="drawer-header-wrapper">
+      <button class="drawer-close-btn" aria-label="关闭菜单">×</button>
+    </div>
+    <div class="drawer-header">
+      <div class="drawer-avatar"></div>
+      <div class="drawer-user">
+        <strong>登录 / 注册</strong>
+        <span class="user-level">免费用户</span>
+      </div>
+    </div>
+    
+    <div class="drawer-section">
+      <h4>核心模块</h4>
+      <nav class="drawer-nav">
+        <a href="#" onclick="window.location.replace('modules/nomi/nomi.html'); return false;">NOMI 智能体</a>
+        <a href="modules/summary/summary.html">智能知识库</a>
+        <a href="modules/mistakes/mistakes.html">智能错题库</a>
+        <a href="modules/learning/learning.html">综合学习中心</a>
+        <a href="modules/teacher/teacher.html">名师讲解课</a>
+        <a href="modules/planning/planning.html">智能成长规划</a>
+      </nav>
+    </div>
+    
+    <div class="drawer-section">
+      <h4>成长系统</h4>
+      <nav class="drawer-nav">
+        <a href="#">成长记忆册</a>
+      </nav>
+    </div>
+    
+    <div class="drawer-section">
+      <h4>Pro & 能力</h4>
+      <nav class="drawer-nav">
+        <a href="#">Pro 会员</a>
+        <a href="#">高级能力</a>
+        <a href="#">能力说明</a>
+      </nav>
+    </div>
+    
+    <div class="drawer-section">
+      <h4>系统功能</h4>
+      <nav class="drawer-nav">
+        <a href="#">系统设置</a>
+        <a href="#">多语言</a>
+        <a href="#">帮助中心</a>
+        <a href="#">联系我们</a>
+      </nav>
+    </div>
+  </div>
+
+  <div class="screen">
+    <div class="content">
+      <h1>星启</h1>
+      <h2>AI 点亮个性化学习路径</h2>
+    </div>
+  </div>
+
+<!-- 个人品牌 -->
+<section class="screen soft">
+  <div class="content from-right">
+    <h2>认识星启</h2>
+    <p class="highlight">星启是一个基于人工智能的个性化学习平台，旨在帮助用户找到最适合自己的学习路径。</p>
+    <p>通过智能辅导、知识图谱等功能，星启能够为用户提供个性化的学习建议和资源。</p>
+    <p>加入我们，开启你的个性化学习之旅！</p>
+  </div>
+</section>
+
+<!-- 一路走来 -->
+<section class="screen dark">
+  <div class="content from-top">
+    <h2>一路走来</h2>
+    <p class="highlight">可回溯的轨迹。</p>
+  </div>
+</section>
+
+<!-- 我的荣誉（文案不动） -->
+<section class="screen darker">
+  <div class="content fade">
+    <h2 class="metal">我的荣誉</h2>
+    <p class="metal">永远相信美好的事情即将发生</p>
+    <p class="metal">只要开始追赶，我们就已经走在成功的道路上</p>
+  </div>
+</section>
+
+<!-- ===============================
+     ✅ 新增：智能中枢（你点名的）
+================================ -->
+<section class="screen soft">
+  <div class="content from-bottom">
+    <h2>智能中枢系统</h2>
+    <p>
+      这是整个系统的认知核心。
+    </p>
+    <p class="highlight">
+      统一接入 DeepSeek 思考模型，
+      承担拆解、判断、推演与整合。
+    </p>
+    <p>
+      不是聊天工具，
+      而是长期决策的放大器。
+    </p>
+  </div>
+</section>
+
+<!-- Pro -->
+<section class="screen soft">
+  <div class="content from-bottom">
+    <h2>pro会员简介</h2>
+    <p class="highlight">结构优势。</p>
+  </div>
+</section>
+
+  <!-- 核心模块 -->
+  <section class="screen dark">
+    <div class="content from-left">
+      <h2 class="core-modules-title">核心模块</h2>
+      <div class="features-grid">
+        <div class="feature-card">
+          <div class="feature-icon">👨‍🏫</div>
+          <h3>NOMI智能体</h3>
+          <p>一对一教学式交互<br>概念讲解与问题解答</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🗂️</div>
+          <h3>智能知识库</h3>
+          <p>碎片信息结构化<br>形成可迁移的认知框架</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🧩</div>
+          <h3>智能错题库</h3>
+          <p>错误模式识别<br>认知盲区定位</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">📖</div>
+          <h3>综合学习中心</h3>
+          <p>问答与反问机制<br>检验知识内化程度</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🎓</div>
+          <h3>名师讲解课</h3>
+          <p>高质量讲解路径<br>多角度概念拆解</p>
+        </div>
+        
+        <div class="feature-card">
+          <div class="feature-icon">🧭</div>
+          <h3>智能成长规划</h3>
+          <p>长期模拟与决策<br>关键节点辅助</p>
+        </div>
+      </div>
+    </div>
+  </section>
+
+  <!-- 核心模块总览 -->
+  <section class="core-overview">
+    <div class="module-page">
+      <h2>NOMI 智能体</h2>
+      <p>
+        NOMI 是系统级的智能中枢，负责理解你的目标、分析你的需求，
+        并将复杂问题拆解为可执行的行动方案。
+        它不是简单的问答工具，而是一个真正参与决策与执行的智能体。
+      </p>
+    </div>
+
+    <div class="module-page">
+      <h2>智能知识库</h2>
+      <p>
+        智能知识库是你的长期记忆系统，
+        自动沉淀学习内容、经验总结与关键信息，
+        并在需要时精准调用，让知识真正成为可复用的能力。
+      </p>
+    </div>
+
+    <div class="module-page">
+      <h2>智能错题库</h2>
+      <p>
+        智能错题库不仅记录错误，
+        更分析错误产生的原因、认知盲区与思维偏差，
+        帮助你从"做错一次"进化为"彻底掌握"。
+      </p>
+    </div>
+
+    <div class="module-page">
+      <h2>综合学习中心</h2>
+      <p>
+        综合学习中心整合多种学习模式与资源，
+        将零散知识系统化、碎片时间结构化，
+        构建一个高效率、可持续的个人学习体系。
+      </p>
+    </div>
+
+    <div class="module-page">
+      <h2>名师讲解课</h2>
+      <p>
+        名师讲解课聚焦高质量知识传递与深度理解，
+        由经验丰富的讲解体系主导内容结构，
+        将复杂概念拆解为清晰、可理解、可吸收的知识单元。
+        课程强调思路、方法与本质，
+        帮助学习者在有限时间内建立正确认知框架与解题逻辑。
+      </p>
+    </div>
+
+    <div class="module-page">
+      <h2>智能成长规划</h2>
+      <p>
+        智能成长规划系统从长期视角出发，
+        分析你的能力结构、学习轨迹与目标方向，
+        为你持续生成清晰、可执行的成长路径。
+      </p>
+    </div>
+  </section>
+
+  <!-- 开发者平台（只在页面） -->
+  <section class="screen darker">
+    <div class="content from-right">
+      <h2>开发者平台</h2>
+      <p class="highlight">系统控制中枢（仅限授权人员访问）</p>
+    </div>
+  </section>
+
+  <!-- 最终目标（只在页面） -->
+  <section class="screen dark">
+    <div class="content fade">
+      <h2>最终目标</h2>
+      <p class="highlight">在时间面前仍然成立</p>
+    </div>
+  </section>
+
+  <!-- 登录弹窗 -->
+  <div class="login-modal" id="loginModal">
+    <div class="login-modal-content">
+      <div class="login-modal-header">
+        <h2>星启</h2>
+        <button class="login-modal-close" id="closeLoginModal">&times;</button>
+      </div>
+      
+      <div class="login-modal-form">
+        <div class="form-group">
+          <label for="modalPhone">手机号</label>
+          <input type="tel" id="modalPhone" class="form-control" placeholder="请输入手机号">
+        </div>
+        
+        <div class="form-group">
+          <label for="modalPassword">密码</label>
+          <input type="password" id="modalPassword" class="form-control" placeholder="请输入密码">
+        </div>
+        
+        <button id="modalLoginBtn" class="btn btn-primary">登录</button>
+        
+        <div class="developer-entry" id="developerEntry">
+          <span>平台管理</span>
+        </div>
+      </div>
+      
+      <div class="login-modal-footer">
+        <p>还没有账号？<a href="auth.html" id="showRegisterFromModal">立即注册</a></p>
+      </div>
+    </div>
+  </div>
+
+  <footer>
+    <p>© 2023 星启. All rights reserved.</p>
+  </footer>
+
+  <script>
+    document.addEventListener('DOMContentLoaded', function() {
+      const menuBtn = document.querySelector('.menu-btn');
+      const drawerMask = document.querySelector('.drawer-mask');
+      const drawer = document.querySelector('.drawer');
+      const drawerCloseBtn = document.querySelector('.drawer-close-btn');
+      
+      // 登录弹窗相关元素
+      const loginModal = document.getElementById('loginModal');
+      const closeLoginModal = document.getElementById('closeLoginModal');
+      const modalLoginBtn = document.getElementById('modalLoginBtn');
+      const showRegisterFromModal = document.getElementById('showRegisterFromModal');
+      const developerEntry = document.getElementById('developerEntry');
+      
+      // 页面滚动动画
+      const sections = document.querySelectorAll('.screen');
+      
+      // 核心模块总览相关元素
+      const coreOverview = document.querySelector('.core-overview');
+      const modulePages = document.querySelectorAll('.module-page');
+      
+      // 打开抽屉
+      menuBtn.addEventListener('click', function() {
+          drawer.classList.add('open');
+          drawerMask.classList.add('show');
+          
+          // 延迟显示关闭按钮
+          setTimeout(() => {
+              drawerCloseBtn.classList.add('show');
+          }, 300);
+      });
+
+      // 关闭抽屉
+      function closeDrawer() {
+          drawerCloseBtn.classList.remove('show');
+          drawer.classList.remove('open');
+          drawerMask.classList.remove('show');
+      }
+
+      // 点击关闭按钮关闭抽屉
+      drawerCloseBtn.addEventListener('click', closeDrawer);
+
+      // 点击遮罩关闭抽屉
+      drawerMask.addEventListener('click', closeDrawer);
+      
+      // 显示登录弹窗
+      function showLoginModal() {
+        loginModal.classList.add('show');
+      }
+
+      // 隐藏登录弹窗
+      function hideLoginModal() {
+        loginModal.classList.remove('show');
+      }
+
+      // 关闭登录弹窗
+      closeLoginModal.addEventListener('click', hideLoginModal);
+      
+      // 点击遮罩关闭登录弹窗
+      loginModal.addEventListener('click', function(e) {
+        if (e.target === loginModal) {
+          hideLoginModal();
+        }
+      });
+      
+      // 登录按钮事件
+      modalLoginBtn.addEventListener('click', function() {
+        const phone = document.getElementById('modalPhone').value;
+        const password = document.getElementById('modalPassword').value;
+        
+        // 简单验证
+        if (!phone || !password) {
+          alert('请输入手机号和密码');
+          return;
+        }
+        
+        // 模拟登录过程
+        // 实际项目中这里应该是AJAX请求
+        const user = {
+          id: 'user_' + Date.now(),
+          phone: phone,
+          role: 'user', // 默认是普通用户
+          level: 'free', // 免费用户
+          loginTime: Date.now()
+        };
+        
+        // 保存登录状态 (30天有效期)
+        const expireTime = Date.now() + (30 * 24 * 60 * 60 * 1000);
+        localStorage.setItem('currentUser', JSON.stringify({
+          ...user,
+          expireTime: expireTime
+        }));
+        
+        // 隐藏登录弹窗
+        hideLoginModal();
+        
+        // 重置表单
+        document.getElementById('modalPhone').value = '';
+        document.getElementById('modalPassword').value = '';
+        
+        // 检查是否为开发者或管理员
+        checkUserRole(user);
+        
+        // 显示成功消息
+        alert('登录成功！');
+        
+        // 如果有记录的意图操作，执行它
+        executeIntendedAction();
+      });
+      
+      // 检查用户角色并显示相应入口
+      function checkUserRole(user) {
+        if (user.role === 'developer' || user.role === 'admin') {
+          developerEntry.style.display = 'block';
+        } else {
+          developerEntry.style.display = 'none';
+        }
+      }
+      
+      // 开发者入口点击事件
+      developerEntry.addEventListener('click', function() {
+        window.location.href = 'developer.html';
+      });
+      
+      // 注册链接事件
+      showRegisterFromModal.addEventListener('click', function(e) {
+        e.preventDefault();
+        hideLoginModal();
+        window.location.href = 'auth.html';
+      });
+      
+      // 检查登录状态
+      function isLoggedIn() {
+        const currentUser = localStorage.getItem('currentUser');
+        if (!currentUser) return false;
+        
+        const user = JSON.parse(currentUser);
+        // 检查是否过期
+        if (Date.now() > user.expireTime) {
+          // 登录已过期，清除登录状态
+          localStorage.removeItem('currentUser');
+          return false;
+        }
+        
+        return true;
+      }
+      
+      // 存储用户意图操作
+      window.storeIntendedAction = function(action) {
+        localStorage.setItem('intendedAction', JSON.stringify({
+          action: action,
+          timestamp: Date.now()
+        }));
+      };
+      
+      // 执行用户意图操作
+      function executeIntendedAction() {
+        const intendedActionStr = localStorage.getItem('intendedAction');
+        if (!intendedActionStr) return;
+        
+        try {
+          const intendedAction = JSON.parse(intendedActionStr);
+          // 检查操作是否过期（5分钟内有效）
+          if (Date.now() - intendedAction.timestamp < 5 * 60 * 1000) {
+            alert(`继续执行您之前的操作: ${intendedAction.action}`);
+            // 实际项目中这里会执行相应的操作
+          }
+          // 清除已执行的意图操作
+          localStorage.removeItem('intendedAction');
+        } catch (e) {
+          console.error('解析意图操作失败', e);
+        }
+      }
+      
+      // 滚动动画处理
+      function checkScrollPosition() {
+        const triggerBottom = window.innerHeight * 0.8;
+        
+        sections.forEach(section => {
+          const sectionTop = section.getBoundingClientRect().top;
+          
+          if (sectionTop < triggerBottom) {
+            const content = section.querySelector('.content');
+            if (content) {
+              content.classList.add('show');
+            }
+          }
+        });
+        
+        // 核心模块总览的滚动处理
+        if (coreOverview) {
+          const coreOverviewTop = coreOverview.getBoundingClientRect().top;
+          const coreOverviewHeight = coreOverview.offsetHeight;
+          const windowHeight = window.innerHeight;
+          
+          // 当核心模块区域进入视口时，激活对应的模块页面
+          if (coreOverviewTop < windowHeight * 0.8 && coreOverviewTop > -coreOverviewHeight * 0.8) {
+            const scrollPercent = (windowHeight - coreOverviewTop) / (windowHeight + coreOverviewHeight);
+            const currentPageIndex = Math.min(Math.floor(scrollPercent * modulePages.length), modulePages.length - 1);
+            
+            modulePages.forEach((page, index) => {
+              if (index <= currentPageIndex) {
+                page.classList.add('active');
+              } else {
+                page.classList.remove('active');
+              }
+            });
+          }
+        }
+      }
+      
+      // 初始化第一个屏幕显示
+      checkScrollPosition();
+      
+      // 监听滚动事件
+      window.addEventListener('scroll', checkScrollPosition);
+    });
+  </script>
+</body>
+</html>
